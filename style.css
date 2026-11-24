@@ -1,0 +1,6 @@
+body { font-family: sans-serif; margin: 20px; background-color: #f4f4f9; }
+.tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+.tabs button { padding: 10px 20px; cursor: pointer; border: 1px solid #ccc; background: #fff; border-radius: 5px; }
+.tabs button.active { background: #007bff; color: white; border-color: #007bff; }
+.tab-panel { display: none; background: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+.tab-panel.active { display: block; }
