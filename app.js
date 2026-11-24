@@ -35,9 +35,17 @@ function renderChecklist() {
   const condSelect = document.getElementById('plan-conditions');
   if (!condSelect) return;
   
-  const cond = condSelect.value;
+  let cond = condSelect.value;
+  // Защита: если значение пустое или неизвестное, принудительно ставим 'forest'
+  if (!cond || !CHECKLIST_RULES[cond]) {
+    cond = 'forest';
+    condSelect.value = 'forest';
+  }
+
   const items = CHECKLIST_RULES[cond] || [];
   const container = document.getElementById('checklist');
+  if (!container) return; // Защита, если вдруг HTML не обновился
+  
   container.innerHTML = '';
   
   items.forEach(item => {
@@ -100,7 +108,7 @@ document.getElementById('save-plan').addEventListener('click', () => {
   localStorage.setItem('lastOpenedPlanId', plan.id);
   
   alert('План успешно сохранён!');
-  updateWeather(plan.location); // Обновляем погоду при сохранении
+  updateWeather(plan.location); 
 });
 
 function openPlan(id) {
@@ -117,16 +125,22 @@ function openPlan(id) {
   document.getElementById('plan-location').value = plan.location || '';
   document.getElementById('plan-date').value = plan.date || '';
   document.getElementById('plan-work').value = plan.work || 'research';
-  document.getElementById('plan-conditions').value = plan.conditions || 'forest';
+  
+  // Защита для выпадающего списка
+  let cond = plan.conditions;
+  if (!cond || !CHECKLIST_RULES[cond]) cond = 'forest';
+  document.getElementById('plan-conditions').value = cond;
   
   currentChecklistState = plan.checklist || {};
   renderChecklist(); 
-  updateWeather(plan.location); // Обновляем погоду при загрузке плана
+  updateWeather(plan.location); 
 }
 
 // --- МОНИТОРИНГ ПОГОДЫ ---
 async function updateWeather(cityName) {
   const weatherDiv = document.getElementById('weather-info');
+  if (!weatherDiv) return;
+
   if (!cityName) {
     weatherDiv.innerHTML = '<p>Укажите локацию в плане, чтобы увидеть погоду.</p>';
     return;
@@ -145,10 +159,8 @@ async function updateWeather(cityName) {
 
     const lat = geoData.results[0].latitude;
     const lon = geoData.results[0].longitude;
-
     const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,wind_speed_10m,weather_code`);
     const weatherData = await weatherRes.json();
-    
     const current = weatherData.current;
     const timeNow = new Date().toLocaleTimeString('ru-RU');
 
@@ -161,31 +173,24 @@ async function updateWeather(cityName) {
       <p><small><i>Данные актуальны на момент запроса: ${timeNow}</i></small></p>
       <p style="color: #666; font-size: 0.9em;">⚠️ Если в воздухе чувствуется дым или гарь — откройте вкладку «Источники» и воспользуйтесь памяткой.</p>
     `;
-
   } catch (error) {
     weatherDiv.innerHTML = '<p style="color: red;">Ошибка при загрузке погоды. Проверьте интернет.</p>';
-    console.error(error);
   }
 }
 
-// --- ПЕЧАТЬ ОТЧЁТА (Шаг 6) ---
+// --- ПЕЧАТЬ ОТЧЁТА ---
 document.getElementById('print-report').addEventListener('click', () => {
   const plan = loadPlans().find(p => p.id === currentPlanId);
-  if (!plan) { 
-    alert('Сначала сохраните план!'); 
-    return; 
-  }
+  if (!plan) { alert('Сначала сохраните план!'); return; }
 
-  const cond = plan.conditions;
+  const cond = plan.conditions || 'forest';
   const items = CHECKLIST_RULES[cond] || [];
   
-  // Формируем список чек-листа для отчёта
   const checklistHTML = items.map(i => {
     const done = plan.checklist?.[i.id] ? '✅' : '❌';
     return `<li style="margin-bottom: 5px;">${done} ${i.text}</li>`;
   }).join('');
 
-  // Формируем сам отчёт
   const report = `
     <html>
       <head>
@@ -205,7 +210,7 @@ document.getElementById('print-report').addEventListener('click', () => {
         
         <h2>Источники</h2>
         <ul>
-          <li>MET Norway / Open-Meteo API (проверено: ${new Date().toLocaleDateString('ru-RU')})</li>
+          <li>Open-Meteo API (проверено: ${new Date().toLocaleDateString('ru-RU')})</li>
           <li>МЧС России — mchs.gov.ru</li>
           <li>Роспотребнадзор — rospotrebnadzor.ru</li>
         </ul>
@@ -216,7 +221,6 @@ document.getElementById('print-report').addEventListener('click', () => {
     </html>
   `;
 
-  // Открываем окно и отправляем на печать
   const w = window.open('', '_blank');
   w.document.write(report);
   w.document.close();
