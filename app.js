@@ -8,7 +8,7 @@ document.querySelectorAll('.tabs button').forEach(btn => {
   });
 });
 
-// --- ЧЕК-ЛИСТ (Шаг 4) ---
+// --- ЧЕК-ЛИСТ ---
 const CHECKLIST_RULES = {
   forest: [
     { id: 'water', text: 'Запас воды на 2 литра на человека' },
@@ -33,7 +33,7 @@ let currentChecklistState = {};
 
 function renderChecklist() {
   const condSelect = document.getElementById('plan-conditions');
-  if (!condSelect) return; // Проверка на всякий случай
+  if (!condSelect) return;
   
   const cond = condSelect.value;
   const items = CHECKLIST_RULES[cond] || [];
@@ -59,10 +59,9 @@ function renderChecklist() {
   });
 }
 
-// Обновляем чек-лист при смене условий
 document.getElementById('plan-conditions').addEventListener('change', renderChecklist);
 
-// --- СОХРАНЕНИЕ ПЛАНА (Шаг 3) ---
+// --- СОХРАНЕНИЕ ПЛАНА ---
 const STORAGE_KEY = 'safetyPlans';
 let currentPlanId = localStorage.getItem('lastOpenedPlanId') || null;
 
@@ -93,23 +92,19 @@ document.getElementById('save-plan').addEventListener('click', () => {
 
   const plans = loadPlans();
   const idx = plans.findIndex(p => p.id === plan.id);
-  if (idx >= 0) {
-    plans[idx] = plan;
-  } else {
-    plans.push(plan);
-  }
+  if (idx >= 0) plans[idx] = plan;
+  else plans.push(plan);
+  
   savePlans(plans);
-
   currentPlanId = plan.id;
   localStorage.setItem('lastOpenedPlanId', plan.id);
   
   alert('План успешно сохранён!');
+  updateWeather(plan.location); // Обновляем погоду при сохранении
 });
 
 function openPlan(id) {
   const plan = loadPlans().find(p => p.id === id);
-  
-  // ИСПРАВЛЕНИЕ: Если плана нет, сбрасываем ID и все равно рисуем чек-лист
   if (!plan) {
     localStorage.removeItem('lastOpenedPlanId');
     currentPlanId = null;
@@ -126,15 +121,10 @@ function openPlan(id) {
   
   currentChecklistState = plan.checklist || {};
   renderChecklist(); 
+  updateWeather(plan.location); // Обновляем погоду при загрузке плана
 }
 
-// При загрузке страницы
-if (currentPlanId) {
-  openPlan(currentPlanId);
-} else {
-  renderChecklist(); // Если плана нет, рисуем чек-лист по умолчанию
-}
-// --- МОНИТОРИНГ ПОГОДЫ (Шаг 5) ---
+// --- МОНИТОРИНГ ПОГОДЫ ---
 async function updateWeather(cityName) {
   const weatherDiv = document.getElementById('weather-info');
   if (!cityName) {
@@ -145,7 +135,6 @@ async function updateWeather(cityName) {
   weatherDiv.innerHTML = '<p>Загрузка погоды...</p>';
 
   try {
-    // 1. Ищем координаты города
     const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityName)}&count=1&language=ru`);
     const geoData = await geoRes.json();
 
@@ -157,14 +146,12 @@ async function updateWeather(cityName) {
     const lat = geoData.results[0].latitude;
     const lon = geoData.results[0].longitude;
 
-    // 2. Узнаем погоду по координатам
     const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,wind_speed_10m,weather_code`);
     const weatherData = await weatherRes.json();
     
     const current = weatherData.current;
     const timeNow = new Date().toLocaleTimeString('ru-RU');
 
-    // 3. Выводим на экран
     weatherDiv.innerHTML = `
       <h3>Погода в локации: ${geoData.results[0].name}</h3>
       <ul>
@@ -179,4 +166,66 @@ async function updateWeather(cityName) {
     weatherDiv.innerHTML = '<p style="color: red;">Ошибка при загрузке погоды. Проверьте интернет.</p>';
     console.error(error);
   }
+}
+
+// --- ПЕЧАТЬ ОТЧЁТА (Шаг 6) ---
+document.getElementById('print-report').addEventListener('click', () => {
+  const plan = loadPlans().find(p => p.id === currentPlanId);
+  if (!plan) { 
+    alert('Сначала сохраните план!'); 
+    return; 
+  }
+
+  const cond = plan.conditions;
+  const items = CHECKLIST_RULES[cond] || [];
+  
+  // Формируем список чек-листа для отчёта
+  const checklistHTML = items.map(i => {
+    const done = plan.checklist?.[i.id] ? '✅' : '❌';
+    return `<li style="margin-bottom: 5px;">${done} ${i.text}</li>`;
+  }).join('');
+
+  // Формируем сам отчёт
+  const report = `
+    <html>
+      <head>
+        <title>Отчёт по безопасности</title>
+        <style>body { font-family: sans-serif; padding: 20px; line-height: 1.5; }</style>
+      </head>
+      <body>
+        <h1>Отчёт по плану: ${plan.name}</h1>
+        <hr>
+        <p><b>Локация:</b> ${plan.location}</p>
+        <p><b>Дата:</b> ${plan.date}</p>
+        <p><b>Тип работ:</b> ${plan.work}</p>
+        <p><b>Условия:</b> ${cond}</p>
+        
+        <h2>Чек-лист подготовки</h2>
+        <ul>${checklistHTML}</ul>
+        
+        <h2>Источники</h2>
+        <ul>
+          <li>MET Norway / Open-Meteo API (проверено: ${new Date().toLocaleDateString('ru-RU')})</li>
+          <li>МЧС России — mchs.gov.ru</li>
+          <li>Роспотребнадзор — rospotrebnadzor.ru</li>
+        </ul>
+        
+        <h2>Ограничения</h2>
+        <p><i>Приложение не заменяет официальные инструкции и не выдаёт разрешение на работы. Данные носят рекомендательный характер.</i></p>
+      </body>
+    </html>
+  `;
+
+  // Открываем окно и отправляем на печать
+  const w = window.open('', '_blank');
+  w.document.write(report);
+  w.document.close();
+  w.print();
+});
+
+// При загрузке страницы
+if (currentPlanId) {
+  openPlan(currentPlanId);
+} else {
+  renderChecklist();
 }
