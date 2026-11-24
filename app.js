@@ -134,3 +134,49 @@ if (currentPlanId) {
 } else {
   renderChecklist(); // Если плана нет, рисуем чек-лист по умолчанию
 }
+// --- МОНИТОРИНГ ПОГОДЫ (Шаг 5) ---
+async function updateWeather(cityName) {
+  const weatherDiv = document.getElementById('weather-info');
+  if (!cityName) {
+    weatherDiv.innerHTML = '<p>Укажите локацию в плане, чтобы увидеть погоду.</p>';
+    return;
+  }
+
+  weatherDiv.innerHTML = '<p>Загрузка погоды...</p>';
+
+  try {
+    // 1. Ищем координаты города
+    const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityName)}&count=1&language=ru`);
+    const geoData = await geoRes.json();
+
+    if (!geoData.results || geoData.results.length === 0) {
+      weatherDiv.innerHTML = `<p>Город "${cityName}" не найден. Проверьте написание.</p>`;
+      return;
+    }
+
+    const lat = geoData.results[0].latitude;
+    const lon = geoData.results[0].longitude;
+
+    // 2. Узнаем погоду по координатам
+    const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,wind_speed_10m,weather_code`);
+    const weatherData = await weatherRes.json();
+    
+    const current = weatherData.current;
+    const timeNow = new Date().toLocaleTimeString('ru-RU');
+
+    // 3. Выводим на экран
+    weatherDiv.innerHTML = `
+      <h3>Погода в локации: ${geoData.results[0].name}</h3>
+      <ul>
+        <li><b>Температура:</b> ${current.temperature_2m} °C</li>
+        <li><b>Скорость ветра:</b> ${current.wind_speed_10m} км/ч</li>
+      </ul>
+      <p><small><i>Данные актуальны на момент запроса: ${timeNow}</i></small></p>
+      <p style="color: #666; font-size: 0.9em;">⚠️ Если в воздухе чувствуется дым или гарь — откройте вкладку «Источники» и воспользуйтесь памяткой.</p>
+    `;
+
+  } catch (error) {
+    weatherDiv.innerHTML = '<p style="color: red;">Ошибка при загрузке погоды. Проверьте интернет.</p>';
+    console.error(error);
+  }
+}
