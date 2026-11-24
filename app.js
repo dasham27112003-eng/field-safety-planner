@@ -233,3 +233,24 @@ if (currentPlanId) {
 } else {
   renderChecklist();
 }
+// --- КНОПКА "ПОДЕЛИТЬСЯ" ---
+document.getElementById('share-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('share-btn');
+    const url = window.location.href;
+
+    try {
+        // Копируем ссылку в буфер обмена
+        await navigator.clipboard.writeText(url);
+        
+        // Меняем вид кнопки на 2 секунды
+        btn.classList.add('success');
+        btn.innerText = '✅ Скопировано!';
+        
+        setTimeout(() => {
+            btn.classList.remove('success');
+            btn.innerText = '🔗 Поделиться';
+        }, 2000);
+    } catch (err) {
+        alert('Не удалось скопировать ссылку. Скопируйте её вручную: ' + url);
+    }
+});
