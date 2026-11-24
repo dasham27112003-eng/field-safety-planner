@@ -1,6 +1,205 @@
-body { font-family: sans-serif; margin: 20px; background-color: #f4f4f9; }
-.tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-.tabs button { padding: 10px 20px; cursor: pointer; border: 1px solid #ccc; background: #fff; border-radius: 5px; }
-.tabs button.active { background: #007bff; color: white; border-color: #007bff; }
-.tab-panel { display: none; background: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-.tab-panel.active { display: block; }
+/* Базовые настройки */
+* {
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    margin: 0;
+    padding: 20px;
+    background-color: #f0f2f5;
+    color: #1c1e21;
+    line-height: 1.5;
+}
+
+/* Шапка */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 900px;
+    margin: 0 auto 20px auto;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 24px;
+    color: #2c3e50;
+}
+
+/* Кнопка поделиться */
+.share-btn {
+    background: #ffffff;
+    border: 1px solid #ced0d4;
+    color: #1c1e21;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.share-btn:hover {
+    background: #f2f2f2;
+    border-color: #b0b3b8;
+}
+
+.share-btn.success {
+    background: #e3fcef;
+    color: #00a854;
+    border-color: #00a854;
+}
+
+/* Вкладки */
+.tabs {
+    display: flex;
+    gap: 10px;
+    max-width: 900px;
+    margin: 0 auto 20px auto;
+    overflow-x: auto;
+    padding-bottom: 5px;
+}
+
+.tabs button {
+    padding: 12px 24px;
+    cursor: pointer;
+    border: none;
+    background: #e4e6eb;
+    color: #050505;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 15px;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+
+.tabs button:hover {
+    background: #d8dadf;
+}
+
+.tabs button.active {
+    background: #1877f2;
+    color: white;
+    box-shadow: 0 2px 4px rgba(24, 119, 242, 0.3);
+}
+
+/* Контентная часть (карточки) */
+main {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.tab-panel {
+    display: none;
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.tab-panel.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Заголовки внутри карточек */
+h2 {
+    margin-top: 0;
+    color: #1c1e21;
+    font-size: 20px;
+    border-bottom: 1px solid #e4e6eb;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+h3 {
+    color: #2c3e50;
+}
+
+/* Поля ввода (форма) */
+label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #4b4f56;
+}
+
+input[type="text"],
+input[type="date"],
+select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ced0d4;
+    border-radius: 8px;
+    font-size: 15px;
+    transition: border-color 0.2s;
+    outline: none;
+}
+
+input[type="text"]:focus,
+input[type="date"]:focus,
+select:focus {
+    border-color: #1877f2;
+    box-shadow: 0 0 0 3px rgba(24, 119, 242, 0.1);
+}
+
+/* Кнопки действий */
+#save-plan, #print-report {
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 15px;
+    cursor: pointer;
+    border: none;
+    transition: background 0.2s;
+}
+
+#save-plan {
+    background: #1877f2;
+    color: white;
+    margin-bottom: 10px;
+}
+
+#save-plan:hover {
+    background: #166fe5;
+}
+
+#print-report {
+    background: #42b72a;
+    color: white;
+}
+
+#print-report:hover {
+    background: #36a420;
+}
+
+/* Ссылки */
+a {
+    color: #1877f2;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Списки (в чек-листе и источниках) */
+ul {
+    padding-left: 20px;
+}
+
+li {
+    margin-bottom: 8px;
+}
