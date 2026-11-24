@@ -31,9 +31,11 @@ const CHECKLIST_RULES = {
 
 let currentChecklistState = {};
 
-// Функция, которая рисует чек-лист на основе выбранных условий
 function renderChecklist() {
-  const cond = document.getElementById('plan-conditions').value;
+  const condSelect = document.getElementById('plan-conditions');
+  if (!condSelect) return; // Проверка на всякий случай
+  
+  const cond = condSelect.value;
   const items = CHECKLIST_RULES[cond] || [];
   const container = document.getElementById('checklist');
   container.innerHTML = '';
@@ -50,7 +52,6 @@ function renderChecklist() {
     `);
   });
 
-  // Сохраняем галочки в память
   container.querySelectorAll('input[type="checkbox"]').forEach(cb => {
     cb.addEventListener('change', (e) => {
       currentChecklistState[e.target.dataset.id] = e.target.checked;
@@ -60,7 +61,6 @@ function renderChecklist() {
 
 // Обновляем чек-лист при смене условий
 document.getElementById('plan-conditions').addEventListener('change', renderChecklist);
-
 
 // --- СОХРАНЕНИЕ ПЛАНА (Шаг 3) ---
 const STORAGE_KEY = 'safetyPlans';
@@ -87,7 +87,7 @@ document.getElementById('save-plan').addEventListener('click', () => {
     date: document.getElementById('plan-date').value,
     work: document.getElementById('plan-work').value,
     conditions: document.getElementById('plan-conditions').value,
-    checklist: currentChecklistState, // <-- Добавили сохранение галочек
+    checklist: currentChecklistState,
     updatedAt: new Date().toISOString()
   };
 
@@ -108,7 +108,14 @@ document.getElementById('save-plan').addEventListener('click', () => {
 
 function openPlan(id) {
   const plan = loadPlans().find(p => p.id === id);
-  if (!plan) return;
+  
+  // ИСПРАВЛЕНИЕ: Если плана нет, сбрасываем ID и все равно рисуем чек-лист
+  if (!plan) {
+    localStorage.removeItem('lastOpenedPlanId');
+    currentPlanId = null;
+    renderChecklist(); 
+    return;
+  }
   
   currentPlanId = plan.id;
   document.getElementById('plan-name').value = plan.name || '';
@@ -117,7 +124,6 @@ function openPlan(id) {
   document.getElementById('plan-work').value = plan.work || 'research';
   document.getElementById('plan-conditions').value = plan.conditions || 'forest';
   
-  // Восстанавливаем галочки
   currentChecklistState = plan.checklist || {};
   renderChecklist(); 
 }
@@ -126,5 +132,5 @@ function openPlan(id) {
 if (currentPlanId) {
   openPlan(currentPlanId);
 } else {
-  renderChecklist(); // Если плана нет, просто рисуем пустой чек-лист для "Леса"
+  renderChecklist(); // Если плана нет, рисуем чек-лист по умолчанию
 }
