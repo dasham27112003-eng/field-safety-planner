@@ -22,7 +22,47 @@
     <main>
         <section id="tab-plan" class="tab-panel active">
             <h2>Создание плана</h2>
-            <p>Здесь будет форма.</p>
+            <form id="plan-form">
+    <div style="margin-bottom: 10px;">
+        <label>Название плана:<br>
+            <input type="text" id="plan-name" placeholder="Например, Выезд на шашлыки" required>
+        </label>
+    </div>
+    
+    <div style="margin-bottom: 10px;">
+        <label>Локация (город):<br>
+            <input type="text" id="plan-location" placeholder="Санкт-Петербург" required>
+        </label>
+    </div>
+
+    <div style="margin-bottom: 10px;">
+        <label>Дата:<br>
+            <input type="date" id="plan-date" required>
+        </label>
+    </div>
+
+    <div style="margin-bottom: 10px;">
+        <label>Тип работ:<br>
+            <select id="plan-work">
+                <option value="research">Полевые исследования</option>
+                <option value="construction">Строительные работы</option>
+                <option value="inspection">Осмотр территории</option>
+            </select>
+        </label>
+    </div>
+
+    <div style="margin-bottom: 10px;">
+        <label>Условия:<br>
+            <select id="plan-conditions">
+                <option value="forest">Лес</option>
+                <option value="city">Город</option>
+                <option value="industrial">Промзона</option>
+            </select>
+        </label>
+    </div>
+
+    <button type="button" id="save-plan" style="background: #007bff; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 5px;">Сохранить план</button>
+</form>
         </section>
 
         <section id="tab-monitoring" class="tab-panel">
